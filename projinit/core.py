@@ -60,7 +60,7 @@ def _project_token(project_root: pathlib.Path) -> str | None:
     return dotenv_values(project_root / ".projinit.env").get("GITHUB_TOKEN", "")
 
 
-def _save_project_token(project_root: pathlib.Path, token: str) -> None:
+def _save_project_token(project_root: pathlib.Path, token: str | None) -> None:
     """Persist token to .projinit.env and ensure it’s git-ignored."""
     (project_root / ".projinit.env").write_text(f"GITHUB_TOKEN={token}\n")
 
@@ -128,11 +128,8 @@ def create_project(path: pathlib.Path, github: bool = False) -> None:
     if shutil.which("git") is None:
         raise RuntimeError("`git` executable not found in PATH")
 
-    _sh(["git", "init", "-b", "main"], cwd=path)
-    _sh(["git", "add", "."], cwd=path)
-    _sh(["git", "commit", "-m", "Initial commit"], cwd=path)
-
     # GitHub remote + push (optional) ------------------------------------
+    token: str | None = None
     if github:
         # token preference: .projinit.env  >  $GITHUB_TOKEN  >  prompt user
         token = _project_token(path) or os.getenv("GITHUB_TOKEN", "")
@@ -145,6 +142,11 @@ def create_project(path: pathlib.Path, github: bool = False) -> None:
             )
             _save_project_token(path, token)
 
+    _sh(["git", "init", "-b", "main"], cwd=path)
+    _sh(["git", "add", "."], cwd=path)
+    _sh(["git", "commit", "-m", "Initial commit"], cwd=path)
+
+    if github:
         ssh_url = _create_github_repo(path.name, token)
         _sh(["git", "remote", "add", "origin", ssh_url], cwd=path)
-        _sh(["git", "push", "-u", "origin", "main"], cwd=path)
+        _sh(["git", "push", "-u", "origin", "master"], cwd=path)
