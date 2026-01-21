@@ -1,7 +1,7 @@
-# projinit 🚀
+# sparkstart ⚡
 **Start your new project in seconds, not minutes.**
 
-You have an idea? `projinit` handles the boring setup so you can start coding immediately.
+You have an idea? `sparkstart` handles the boring setup so you can start coding immediately.
 
 ### What it does
 1. 📂 Creates your project folder and structure.
@@ -16,40 +16,39 @@ You have an idea? `projinit` handles the boring setup so you can start coding im
 
 ---
 
-### 1. Prerequisites (Do you have these?)
+### 1. Prerequisites
 *   **Python** (3.8+) → [Download here](https://www.python.org/downloads/)
 *   **Git** → [Download here](https://git-scm.com/downloads)
 
 ### 2. Install
-Open your terminal and run:
 ```bash
-pip install projinit
+pip install sparkstart
 ```
 
 ### 3. Create your Project
 
 **Python (default):**
 ```bash
-projinit new my-awesome-game
+sparkstart new my-awesome-game
 ```
 
 **Rust:**
 ```bash
-projinit new my-rust-app --lang rust
+sparkstart new my-rust-app --lang rust
 ```
 
 **JavaScript:**
 ```bash
-projinit new my-web-app --lang javascript
+sparkstart new my-web-app --lang javascript
 ```
 
 **With GitHub:**
 ```bash
-projinit new my-awesome-game --github
+sparkstart new my-awesome-game --github
 ```
 
 **What happens next?**
-1.  `projinit` creates your project with working starter code.
+1.  `sparkstart` creates your project with working starter code.
 2.  If using `--github`, it will ask for a **GitHub Token**.
 3.  It will **automatically open your browser** to the right GitHub page.
 4.  Just scroll down, click **"Generate token"**, and paste it into the terminal.

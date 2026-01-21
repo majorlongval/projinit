@@ -1,13 +1,13 @@
 [project]
-name = "projinit"
-version = "0.0.1"
+name = "sparkstart"
+version = "0.1.0"
 description = "Spin-up a ready-to-code project with one command"
-authors = [{ name = "Your Name", email = "you@example.com" }]
+authors = [{ name = "Jordan Longval", email = "majorlongval@gmail.com" }]
 requires-python = ">=3.8"
 dependencies = ["typer", "requests", "python-dotenv"]
 
 [project.scripts]
-projinit = "projinit.cli:app"
+sparkstart = "sparkstart.cli:app"
 
 [build-system]
 requires = ["pdm-backend"]
