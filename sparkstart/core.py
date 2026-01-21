@@ -89,16 +89,45 @@ DEVCONTAINER_JSON = textwrap.dedent("""
           "upgradePackages": true
         }
       },
+      "postCreateCommand": "sudo apt-get update && sudo apt-get install -y neovim",
       "customizations": {
         "vscode": {
           "extensions": [
             "ms-vscode.cpptools",
             "ms-vscode.cmake-tools",
-            "waderyan.gitblame"
+            "waderyan.gitblame",
+            "asvetliakov.vscode-neovim"
           ]
         }
       }
     }
+""").strip()
+
+BUILD_SH = textwrap.dedent("""
+    #!/bin/bash
+    set -e
+    
+    # ==============================================================================
+    # Build Script - a shortcut for the CMake workflow
+    # ==============================================================================
+    
+    echo "🚀 Building {name}..."
+    
+    # 1. Create build directory
+    mkdir -p build
+    
+    # 2. Dependency Management (Optional)
+    # If you use Conan, uncomment the following line:
+    # conan install . --output-folder=build --build=missing
+    
+    # 3. Configure (CMake)
+    cd build
+    cmake ..
+    
+    # 4. Build (Compile)
+    cmake --build .
+    
+    echo "✅ Build complete! Run with: ./build/{name}"
 """).strip()
 
 README_CPP = textwrap.dedent("""
@@ -461,6 +490,12 @@ def _scaffold_cpp(path: pathlib.Path) -> None:
     ''').strip()
     (path / "conanfile.txt").write_text(conan_content + "\n")
 
+    # Build script
+    build_sh = path / "build.sh"
+    build_sh.write_text(BUILD_SH.format(name=path.name) + "\n")
+    # Make executable (chmod +x)
+    build_sh.chmod(build_sh.stat().st_mode | 0o111)
+
 
 # ----------------------------------------------------------------------------- #
 # Public API                                                                    #
@@ -501,6 +536,12 @@ def create_project(path: pathlib.Path, github: bool = False, lang: str = "python
 
     # Dev Container
     if devcontainer:
+        if shutil.which("docker") is None:
+            import typer
+            typer.secho(
+                "WARNING: Docker not found. You need Docker to use Dev Containers.",
+                fg=typer.colors.YELLOW
+            )
         _scaffold_devcontainer(path, lang)
 
     # git repository
