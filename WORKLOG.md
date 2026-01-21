@@ -26,3 +26,13 @@
 5. Added `python-dotenv` to dependencies in pyproject.toml
 
 **Verified:** Created test projects in all three languages, ran Hello World successfully.
+
+---
+
+## 2026-01-21: Published to PyPI as sparkstart
+
+**Package name journey:** projinit → initforge → sparkstart (first two were taken)
+
+**Published:** `pip install sparkstart` now works globally!
+
+**Final package:** sparkstart v0.1.0
