@@ -1,11 +1,11 @@
 import pathlib
 import typer
 import shutil
-from projinit.core import create_project, delete_project
+from sparkstart.core import create_project, delete_project
 
 
 app = typer.Typer(
-    help="projinit – create a new project repository quickly",
+    help="sparkstart – create a new project repository quickly",
     invoke_without_command=True,  # allows root alias
     no_args_is_help=True,
 )
@@ -18,11 +18,11 @@ def main(
     # name argument removed to avoid "stealing" the subcommand
 ):
     """
-    projinit – Start your new project in seconds.
+    sparkstart – Start your new project in seconds.
     
     Usage:
-        projinit new <name>
-        projinit delete <name>
+        sparkstart new <name>
+        sparkstart delete <name>
     """
     if ctx.invoked_subcommand is None:
         # If no subcommand is provided, show the help message
@@ -35,7 +35,7 @@ def main(
 def new(
     name: str,
     github: bool = typer.Option(False, "--github", help="Push to GitHub"),
-    lang: str = typer.Option("python", "--lang", "-l", help="Language: python, rust, javascript"),
+    lang: str = typer.Option("python", "--lang", "-l", help="Language: python, rust, javascript, cpp"),
 ):
     """Create a new project folder NAME (optionally push to GitHub)."""
     create_project(pathlib.Path.cwd() / name, github, lang)
@@ -53,7 +53,7 @@ def delete(
         typer.confirm(f"Delete {'and remote ' if github else ''}{target} ?", abort=True)
 
     try:
-        from projinit.core import delete_project
+        from sparkstart.core import delete_project
 
         delete_project(target, github)
         typer.secho("Project deleted !", fg=typer.colors.GREEN)

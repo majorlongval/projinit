@@ -13,6 +13,7 @@ You have an idea? `sparkstart` handles the boring setup so you can start coding 
 - **Python** (default) — pyproject.toml, src/, .venv
 - **Rust** — Cargo.toml, src/main.rs
 - **JavaScript** — package.json, index.js
+- **C++** — CMakeLists.txt, conanfile.txt, src/main.cpp
 
 ---
 
@@ -40,6 +41,11 @@ sparkstart new my-rust-app --lang rust
 **JavaScript:**
 ```bash
 sparkstart new my-web-app --lang javascript
+```
+
+**C++ (with CMake + Conan):**
+```bash
+sparkstart new my-cpp-project --lang cpp
 ```
 
 **With GitHub:**
