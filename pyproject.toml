@@ -4,7 +4,7 @@ version = "0.0.1"
 description = "Spin-up a ready-to-code project with one command"
 authors = [{ name = "Your Name", email = "you@example.com" }]
 requires-python = ">=3.8"
-dependencies = ["typer[all]", "requests"]
+dependencies = ["typer", "requests", "python-dotenv"]
 
 [project.scripts]
 projinit = "projinit.cli:app"
