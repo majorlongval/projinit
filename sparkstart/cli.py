@@ -36,10 +36,11 @@ def new(
     name: str,
     github: bool = typer.Option(False, "--github", help="Push to GitHub"),
     lang: str = typer.Option("python", "--lang", "-l", help="Language: python, rust, javascript, cpp"),
+    template: str = typer.Option(None, "--template", "-t", help="Template: pygame (only for python)"),
     devcontainer: bool = typer.Option(False, "--devcontainer", "-d", help="Generate .devcontainer config (Docker required)"),
 ):
     """Create a new project folder NAME (optionally push to GitHub)."""
-    create_project(pathlib.Path.cwd() / name, github, lang, devcontainer)
+    create_project(pathlib.Path.cwd() / name, github, lang, devcontainer, template)
 
 
 

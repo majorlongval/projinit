@@ -127,3 +127,4 @@ How hard is it to install these for the user?
 **Status:** Ready to release v0.1.2.
 
 
+- **Success:** Published v0.1.2 to PyPI. ✅

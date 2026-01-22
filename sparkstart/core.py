@@ -71,6 +71,9 @@ GITIGNORE_CPP = textwrap.dedent("""
     # General
     .DS_Store
     .projinit.env
+    
+    # Testing
+    test_results/
 """).strip()
 
 NEW_TOKEN_URL = (
@@ -97,6 +100,32 @@ DEVCONTAINER_JSON = textwrap.dedent("""
             "ms-vscode.cmake-tools",
             "waderyan.gitblame",
             "asvetliakov.vscode-neovim"
+          ]
+        }
+      }
+    }
+""").strip()
+
+DEVCONTAINER_PYTHON = textwrap.dedent("""
+    {
+      "name": "Python 3",
+      "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bullseye",
+      "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+          "installZsh": true,
+          "configureZshAsDefaultShell": true,
+          "installOhMyZsh": true,
+          "upgradePackages": true
+        }
+      },
+      "postCreateCommand": "pip install -r requirements.txt",
+      "customizations": {
+        "vscode": {
+          "extensions": [
+            "ms-python.python",
+            "ms-python.vscode-pylance",
+            "njpwerner.autodocstring",
+            "charliermarsh.ruff"
           ]
         }
       }
@@ -214,12 +243,17 @@ def _save_project_token(project_root: pathlib.Path, token: str | None) -> None:
 
 def _scaffold_devcontainer(path: pathlib.Path, lang: str) -> None:
     """Create .devcontainer configuration."""
-    if lang != "cpp":
-        # Only C++ supported for now (can expand later)
+    (path / ".devcontainer").mkdir()
+    
+    if lang == "cpp":
+        content = DEVCONTAINER_JSON
+    elif lang == "python":
+        content = DEVCONTAINER_PYTHON
+    else:
+        # Fallback or Todo
         return
 
-    (path / ".devcontainer").mkdir()
-    (path / ".devcontainer" / "devcontainer.json").write_text(DEVCONTAINER_JSON + "\n")
+    (path / ".devcontainer" / "devcontainer.json").write_text(content + "\n")
 
 
 # ---------- GitHub API ------------------------------------------------------- #
@@ -285,22 +319,149 @@ def _delete_github_repo(owner: str, repo_name: str, token: str) -> None:
 # ----------------------------------------------------------------------------- #
 
 
-def _scaffold_python(path: pathlib.Path) -> None:
-    """Create Python project structure with Hello World."""
+def _scaffold_python(path: pathlib.Path, template: str | None = None) -> None:
+    """Create Python project structure with Hello World and tests."""
     (path / "src").mkdir()
     (path / "src" / "__init__.py").touch()
-    (path / "src" / "main.py").write_text('print("Hello, world!")\n')
+    
+    if template == "pygame":
+        # Snake Game / Pygame Template
+        main_py = textwrap.dedent('''
+            import pygame
+            import sys
+            import random
+
+            def main():
+                pygame.init()
+                clock = pygame.time.Clock()
+                
+                # Constants
+                WIDTH, HEIGHT = 600, 400
+                BLOCK_SIZE = 20
+                WHITE = (255, 255, 255)
+                BLACK = (0, 0, 0)
+                RED = (213, 50, 80)
+                GREEN = (0, 255, 0)
+                
+                screen = pygame.display.set_mode((WIDTH, HEIGHT))
+                pygame.display.set_caption('Sparkstart Snake')
+                
+                # Snake state
+                x1, y1 = WIDTH / 2, HEIGHT / 2
+                x1_change, y1_change = 0, 0
+                snake_list = []
+                length_of_snake = 1
+                
+                # Food
+                foodx = round(random.randrange(0, WIDTH - BLOCK_SIZE) / 20.0) * 20.0
+                foody = round(random.randrange(0, HEIGHT - BLOCK_SIZE) / 20.0) * 20.0
+                
+                while True:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            sys.exit()
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_LEFT:
+                                x1_change = -BLOCK_SIZE
+                                y1_change = 0
+                            elif event.key == pygame.K_RIGHT:
+                                x1_change = BLOCK_SIZE
+                                y1_change = 0
+                            elif event.key == pygame.K_UP:
+                                y1_change = -BLOCK_SIZE
+                                x1_change = 0
+                            elif event.key == pygame.K_DOWN:
+                                y1_change = BLOCK_SIZE
+                                x1_change = 0
+
+                    if x1 >= WIDTH or x1 < 0 or y1 >= HEIGHT or y1 < 0:
+                        # Game Over behavior simplified: just reset
+                        x1, y1 = WIDTH / 2, HEIGHT / 2
+                        x1_change, y1_change = 0, 0
+                        snake_list = []
+                        length_of_snake = 1
+                    
+                    x1 += x1_change
+                    y1 += y1_change
+                    screen.fill(BLACK)
+                    
+                    pygame.draw.rect(screen, GREEN, [foodx, foody, BLOCK_SIZE, BLOCK_SIZE])
+                    
+                    snake_head = []
+                    snake_head.append(x1)
+                    snake_head.append(y1)
+                    snake_list.append(snake_head)
+                    if len(snake_list) > length_of_snake:
+                        del snake_list[0]
+                        
+                    for x in snake_list:
+                        pygame.draw.rect(screen, WHITE, [x[0], x[1], BLOCK_SIZE, BLOCK_SIZE])
+                        
+                    pygame.display.update()
+                    
+                    if x1 == foodx and y1 == foody:
+                        foodx = round(random.randrange(0, WIDTH - BLOCK_SIZE) / 20.0) * 20.0
+                        foody = round(random.randrange(0, HEIGHT - BLOCK_SIZE) / 20.0) * 20.0
+                        length_of_snake += 1
+                        
+                    clock.tick(10)
+
+            if __name__ == "__main__":
+                main()
+        ''').strip()
+    else:
+        # Standard Hello World
+        main_py = textwrap.dedent('''
+            def hello() -> str:
+                return "Hello, world!"
+
+            if __name__ == "__main__":
+                print(hello())
+        ''').strip()
+    (path / "src" / "main.py").write_text(main_py + "\n")
+    
     (path / ".gitignore").write_text(GITIGNORE_PYTHON + "\n")
     (path / "requirements.txt").touch()
+
+    # Create tests directory
+    (path / "tests").mkdir()
+    (path / "tests" / "__init__.py").touch()
     
-    # Create pyproject.toml
+    # Sample test
+    if template == "pygame":
+        # Simple import test for pygame
+        test_main = textwrap.dedent('''
+            def test_import_pygame():
+                import pygame
+                assert pygame.ver is not None
+        ''').strip()
+    else:
+        test_main = textwrap.dedent('''
+            from src.main import hello
+
+            def test_hello():
+                assert hello() == "Hello, world!"
+        ''').strip()
+    (path / "tests" / "test_main.py").write_text(test_main + "\n")
+    
+    # Create pyproject.toml with pytest and optional deps
+    deps = 'dependencies = []'
+    if template == "pygame":
+        deps = 'dependencies = ["pygame", "requests", "python-dotenv"]' # keeping original reqs + pygame
+    else:
+        deps = 'dependencies = ["requests", "python-dotenv"]' # Restoring original deps
+    
     pyproject = textwrap.dedent(f'''
         [project]
         name = "{path.name}"
         version = "0.1.0"
         description = ""
         requires-python = ">=3.8"
-        dependencies = []
+        {deps}
+
+        [project.optional-dependencies]
+        test = ["pytest"]
     ''').strip()
     (path / "pyproject.toml").write_text(pyproject + "\n")
     
@@ -451,11 +612,15 @@ def _scaffold_cpp(path: pathlib.Path) -> None:
         # ------------------------------------------------------------------------------
         # LINKING CONAN DEPENDENCIES (uncomment when you add libraries)
         # ------------------------------------------------------------------------------
-        # Example: if you added "fmt" in conanfile.txt:
-        #
         # find_package(fmt REQUIRED)
         # target_link_libraries(${{PROJECT_NAME}} fmt::fmt)
         # ------------------------------------------------------------------------------
+
+        # ------------------------------------------------------------------------------
+        # TESTING
+        # ------------------------------------------------------------------------------
+        enable_testing()
+        add_subdirectory(tests)
     ''').strip()
     (path / "CMakeLists.txt").write_text(cmake_content + "\n")
     
@@ -478,7 +643,8 @@ def _scaffold_cpp(path: pathlib.Path) -> None:
         # fmt/10.2.1          # Modern formatting library
         # spdlog/1.13.0       # Fast logging library  
         # nlohmann_json/3.11.3  # JSON parsing
-        
+        gtest/1.14.0
+
         [generators]
         # CMakeToolchain — generates conan_toolchain.cmake for CMake integration
         # CMakeDeps — generates find_package() config for each dependency
@@ -489,6 +655,31 @@ def _scaffold_cpp(path: pathlib.Path) -> None:
         cmake_layout
     ''').strip()
     (path / "conanfile.txt").write_text(conan_content + "\n")
+
+    # Tests directory
+    (path / "tests").mkdir()
+    
+    tests_cmake = textwrap.dedent(f'''
+        find_package(GTest REQUIRED)
+
+        add_executable(unit_tests test_main.cpp)
+        
+        target_link_libraries(unit_tests GTest::gtest_main)
+        
+        include(GoogleTest)
+        gtest_discover_tests(unit_tests)
+    ''').strip()
+    (path / "tests" / "CMakeLists.txt").write_text(tests_cmake + "\n")
+    
+    test_main_cpp = textwrap.dedent('''
+        #include <gtest/gtest.h>
+
+        TEST(HelloTest, BasicAssertions) {
+            EXPECT_STRNE("hello", "world");
+            EXPECT_EQ(7 * 6, 42);
+        }
+    ''').strip()
+    (path / "tests" / "test_main.cpp").write_text(test_main_cpp + "\n")
 
     # Build script
     build_sh = path / "build.sh"
@@ -502,7 +693,13 @@ def _scaffold_cpp(path: pathlib.Path) -> None:
 # ----------------------------------------------------------------------------- #
 
 
-def create_project(path: pathlib.Path, github: bool = False, lang: str = "python", devcontainer: bool = False) -> None:
+def create_project(
+    path: pathlib.Path, 
+    github: bool = False, 
+    lang: str = "python", 
+    devcontainer: bool = False,
+    template: str | None = None
+) -> None:
     """
     Make a fully-initialised project directory.
 
@@ -512,6 +709,7 @@ def create_project(path: pathlib.Path, github: bool = False, lang: str = "python
     github : bool          if True, also create & push remote repo
     lang   : str           language: "python", "rust", "javascript", or "cpp"
     devcontainer : bool    if True, generate .devcontainer config
+    template     : str     template name (e.g. "pygame") or None
     """
     # Create project folder
     path.mkdir(parents=False, exist_ok=False)
@@ -524,7 +722,7 @@ def create_project(path: pathlib.Path, github: bool = False, lang: str = "python
 
     # Language-specific scaffolding
     if lang == "python":
-        _scaffold_python(path)
+        _scaffold_python(path, template)
     elif lang == "rust":
         _scaffold_rust(path)
     elif lang == "javascript":
